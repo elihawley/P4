@@ -20,7 +20,7 @@ def op_craft_wooden_axe_at_bench (state, ID):
 # your code here
 
 def op_craft_plank (state, ID):
-	if state.time[ID] >= 1 and state.wood >= 1:
+	if state.time[ID] >= 1 and state.wood[ID] >= 1:
 		state.plank[ID] += 4
 		state.wood[ID] -= 1
 		state.time[ID] -= 1
@@ -28,7 +28,7 @@ def op_craft_plank (state, ID):
 	return False
 
 def op_craft_stick (state, ID):
-	if state.time[ID] >= 1 and state.plank >= 2:
+	if state.time[ID] >= 1 and state.plank[ID] >= 2:
 		state.stick[ID] += 4
 		state.plank[ID] -= 2
 		state.time[ID] -= 1
@@ -36,7 +36,7 @@ def op_craft_stick (state, ID):
 	return False
 
 def op_craft_bench (state, ID):
-	if state.time[ID] >= 1 and state.plank >= 4:
+	if state.time[ID] >= 1 and state.plank[ID] >= 4:
 		state.bench[ID] += 1
 		state.plank[ID] -= 4
 		state.time[ID] -= 1
@@ -217,6 +217,15 @@ def produce_enough (state, ID, item, num):
 
 def produce (state, ID, item):
 	if item == 'wood': 
+		if state.made_iron_axe[ID] == True:
+			return [('produce_iron_wood', ID)]
+		elif state.made_stone_axe[ID] == True:
+			return [('produce_stone_wood', ID)]
+		elif state.made_wooden_axe[ID] == True:
+			return [('produce_wood_wood', ID)]
+		elif state.wood[ID] >= 3 and state.made_bench[ID] == False:
+			state.made_wooden_axe[ID] = True
+			return [('produce_wooden_axe', ID)]
 		return [('produce_wood', ID)]
 	# your code here
 	elif item == 'plank':
@@ -224,11 +233,33 @@ def produce (state, ID, item):
 	elif item == 'stick':
 		return [('produce_stick', ID)]
 	elif item == 'cobble':
-		return [('produce_cobble', ID)]
+		if state.made_iron_pickaxe[ID] == True:
+			return [('produce_iron_cobble', ID)]
+		elif state.made_stone_pickaxe[ID] == True:
+			return [('produce_stone_cobble', ID)]
+		elif state.made_wooden_pickaxe[ID] == True:
+			return [('produce_wood_cobble', ID)]
+		state.made_wooden_pickaxe[ID] = True
+		return [('produce_wooden_pickaxe', ID)]
+	
 	elif item == 'coal':
-		return [('produce_coal', ID)]
+		if state.made_iron_pickaxe[ID] == True:
+			return [('produce_iron_coal', ID)]
+		elif state.made_stone_pickaxe[ID] == True:
+			return [('produce_stone_coal', ID)]
+		elif state.made_wooden_pickaxe[ID] == True:
+			return [('produce_wood_coal', ID)]
+		state.made_wooden_pickaxe[ID] = True
+		return [('produce_wooden_pickaxe', ID)]
+	
 	elif item == 'ore':
-		return [('produce_ore', ID)]
+		if state.made_iron_pickaxe[ID] == True:
+			return [('produce_iron_ore', ID)]
+		elif state.made_stone_pickaxe[ID] == True:
+			return [('produce_stone_ore', ID)]
+		state.made_stone_pickaxe[ID] = True
+		return [('produce_stone_pickaxe', ID)]
+	
 	elif item == 'ingot':
 		return [('produce_ingot', ID)]
 	elif item == 'rail':
@@ -236,7 +267,7 @@ def produce (state, ID, item):
 	elif item == 'cart':
 		return [('produce_cart', ID)]
 	
-	elif item == 'banch':
+	elif item == 'bench':
 		if state.made_bench[ID] is True:
 			return False
 		else:
@@ -373,6 +404,21 @@ pyhop.declare_methods ('produce_stone_pickaxe', craft_stone_pickaxe_at_bench)
 pyhop.declare_methods ('produce_iron_axe', craft_iron_axe_at_bench)
 pyhop.declare_methods ('produce_iron_pickaxe', craft_iron_pickaxe_at_bench)
 
+pyhop.declare_methods ('produce_wood_wood', mine_with_wood_for_wood)
+pyhop.declare_methods ('produce_stone_wood', mine_with_stone_for_wood)
+pyhop.declare_methods ('produce_iron_wood', mine_with_iron_for_wood)
+
+pyhop.declare_methods ('produce_wood_cobble', mine_with_wood_for_cobble)
+pyhop.declare_methods ('produce_stone_cobble', mine_with_stone_for_cobble)
+pyhop.declare_methods ('produce_iron_cobble', mine_with_iron_for_cobble)
+
+pyhop.declare_methods ('produce_wood_coal', mine_with_wood_for_coal)
+pyhop.declare_methods ('produce_stone_coal', mine_with_stone_for_coal)
+pyhop.declare_methods ('produce_iron_coal', mine_with_iron_for_coal)
+
+pyhop.declare_methods ('produce_stone_ore', mine_with_stone_for_ore)
+pyhop.declare_methods ('produce_iron_ore', mine_with_iron_for_ore)
+#This did not work
 #How do we prooduce cobble, produce coal, produce ore for each tools?#
 
 '''end recipe methods'''
@@ -380,8 +426,8 @@ pyhop.declare_methods ('produce_iron_pickaxe', craft_iron_pickaxe_at_bench)
 # declare state
 state = pyhop.State('state')
 state.wood = {'agent': 0}
-state.time = {'agent': 4}
-# state.time = {'agent': 46}
+#state.time = {'agent': 4}
+state.time = {'agent': 46}
 state.wooden_axe = {'agent': 0}
 state.made_wooden_axe = {'agent': False}
 # your code here 
@@ -398,6 +444,8 @@ state.made_iron_axe = {'agent': False}
 state.iron_pickaxe = {'agent': 0}
 state.made_iron_pickaxe = {'agent': False}
 
+state.plank = {'agent': 0}
+state.stick = {'agent': 0}
 state.cobble = {'agent': 0}
 state.coal = {'agent': 0}
 state.ore = {'agent': 0}
@@ -413,5 +461,5 @@ state.made_furnace = {'agent': False}
 # pyhop.print_operators()
 # pyhop.print_methods()
 
-pyhop.pyhop(state, [('have_enough', 'agent', 'wood', 1)], verbose=3)
-# pyhop.pyhop(state, [('have_enough', 'agent', 'wood', 12)], verbose=3)
+#pyhop.pyhop(state, [('have_enough', 'agent', 'wood', 1)], verbose=3)
+pyhop.pyhop(state, [('have_enough', 'agent', 'wood', 12)], verbose=3)
