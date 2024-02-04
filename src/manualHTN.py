@@ -217,7 +217,7 @@ def produce_enough (state, ID, item, num):
 
 def produce (state, ID, item):
 	if item == 'wood': 
-		if state.made_iron_axe[ID] == True:
+		"""if state.made_iron_axe[ID] == True:
 			return [('produce_iron_wood', ID)]
 		elif state.made_stone_axe[ID] == True:
 			return [('produce_stone_wood', ID)]
@@ -225,7 +225,7 @@ def produce (state, ID, item):
 			return [('produce_wood_wood', ID)]
 		elif state.wood[ID] >= 3 and state.made_bench[ID] == False:
 			state.made_wooden_axe[ID] = True
-			return [('produce_wooden_axe', ID)]
+			return [('produce_wooden_axe', ID)]"""
 		return [('produce_wood', ID)]
 	# your code here
 	elif item == 'plank':
@@ -233,32 +233,38 @@ def produce (state, ID, item):
 	elif item == 'stick':
 		return [('produce_stick', ID)]
 	elif item == 'cobble':
-		if state.made_iron_pickaxe[ID] == True:
+		"""if state.made_iron_pickaxe[ID] == True:
 			return [('produce_iron_cobble', ID)]
 		elif state.made_stone_pickaxe[ID] == True:
 			return [('produce_stone_cobble', ID)]
 		elif state.made_wooden_pickaxe[ID] == True:
 			return [('produce_wood_cobble', ID)]
 		state.made_wooden_pickaxe[ID] = True
-		return [('produce_wooden_pickaxe', ID)]
+		return [('produce_wooden_pickaxe', ID)]"""
+
+		return [('produce_cobble', ID)]
 	
 	elif item == 'coal':
-		if state.made_iron_pickaxe[ID] == True:
+		"""if state.made_iron_pickaxe[ID] == True:
 			return [('produce_iron_coal', ID)]
 		elif state.made_stone_pickaxe[ID] == True:
 			return [('produce_stone_coal', ID)]
 		elif state.made_wooden_pickaxe[ID] == True:
 			return [('produce_wood_coal', ID)]
 		state.made_wooden_pickaxe[ID] = True
-		return [('produce_wooden_pickaxe', ID)]
+		return [('produce_wooden_pickaxe', ID)]"""
+
+		return [('produce_coal', ID)]
 	
 	elif item == 'ore':
-		if state.made_iron_pickaxe[ID] == True:
+		"""if state.made_iron_pickaxe[ID] == True:
 			return [('produce_iron_ore', ID)]
 		elif state.made_stone_pickaxe[ID] == True:
 			return [('produce_stone_ore', ID)]
 		state.made_stone_pickaxe[ID] = True
-		return [('produce_stone_pickaxe', ID)]
+		return [('produce_stone_pickaxe', ID)]"""
+
+		return [('produce_ore', ID)]
 	
 	elif item == 'ingot':
 		return [('produce_ingot', ID)]
@@ -387,7 +393,15 @@ def mine_with_iron_for_wood (state, ID):
 	return[('have_enough', ID, 'iron_axe', 1), ('op_mine_with_iron_for_wood', ID)]
 # your code here
 
-pyhop.declare_methods ('produce_wood', punch_for_wood)
+#pyhop.declare_methods ('produce_wood', mine_with_iron_for_wood, mine_with_stone_for_wood, mine_with_wood_for_wood, punch_for_wood)
+pyhop.declare_methods ('produce_wood', mine_with_wood_for_wood, punch_for_wood)
+
+pyhop.declare_methods ('produce_cobble', mine_with_iron_for_cobble, mine_with_stone_for_cobble, mine_with_wood_for_cobble)
+
+pyhop.declare_methods ('produce_coal', mine_with_iron_for_coal, mine_with_stone_for_coal, mine_with_wood_for_coal)
+
+pyhop.declare_methods ('produce_ore', mine_with_iron_for_ore, mine_with_stone_for_ore)
+
 pyhop.declare_methods ('produce_plank', craft_plank)
 pyhop.declare_methods ('produce_bench', craft_bench)
 pyhop.declare_methods ('produce_stick', craft_stick)
@@ -404,6 +418,7 @@ pyhop.declare_methods ('produce_stone_pickaxe', craft_stone_pickaxe_at_bench)
 pyhop.declare_methods ('produce_iron_axe', craft_iron_axe_at_bench)
 pyhop.declare_methods ('produce_iron_pickaxe', craft_iron_pickaxe_at_bench)
 
+"""
 pyhop.declare_methods ('produce_wood_wood', mine_with_wood_for_wood)
 pyhop.declare_methods ('produce_stone_wood', mine_with_stone_for_wood)
 pyhop.declare_methods ('produce_iron_wood', mine_with_iron_for_wood)
@@ -418,6 +433,7 @@ pyhop.declare_methods ('produce_iron_coal', mine_with_iron_for_coal)
 
 pyhop.declare_methods ('produce_stone_ore', mine_with_stone_for_ore)
 pyhop.declare_methods ('produce_iron_ore', mine_with_iron_for_ore)
+"""
 #This did not work
 #How do we prooduce cobble, produce coal, produce ore for each tools?#
 
