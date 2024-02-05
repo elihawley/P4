@@ -113,15 +113,17 @@ def add_heuristic (data, ID):
 				return True
 		
 		# Skip making an unneeded axe
-		if (getattr(state, 'iron_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'have_enough' and curr_task[2] == 'stone_axe') and getattr(state, 'stone_axe', 0) >= data['Goal'].get('stone_axe', 0)):
+		if (getattr(state, 'iron_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'have_enough' and curr_task[2] == 'stone_axe') and getattr(state, 'stone_axe', {ID:0})[ID] >= data['Goal'].get('stone_axe', 0)):
 			return True
-		if (getattr(state, 'iron_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'have_enough' and curr_task[2] == 'wooden_axe') and getattr(state, 'wooden_axe', 0) >= data['Goal'].get('wooden_axe', 0)):
+		if (getattr(state, 'iron_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'have_enough' and curr_task[2] == 'wooden_axe') and getattr(state, 'wooden_axe', {ID:0})[ID] >= data['Goal'].get('wooden_axe', 0)):
 			return True
-		if (getattr(state, 'stone_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'have_enough' and curr_task[2] in {'stone_axe'}) and getattr(state, 'iron_axe', 0) >= data['Goal'].get('iron_axe', 0)):
+		if (getattr(state, 'stone_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'have_enough' and curr_task[2] == 'iron_axe') and getattr(state, 'iron_axe', {ID:0})[ID] >= data['Goal'].get('iron_axe', 0)):
 			return True
-		if (getattr(state, 'stone_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'have_enough' and curr_task[2] == 'wooden_axe') and getattr(state, 'wooden_axe', 0) >= data['Goal'].get('wooden_axe', 0)):
+		if (getattr(state, 'stone_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'have_enough' and curr_task[2] == 'wooden_axe') and getattr(state, 'wooden_axe', {ID:0})[ID] >= data['Goal'].get('wooden_axe', 0)):
 			return True
-		if (getattr(state, 'wooden_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'have_enough' and curr_task[2] == 'iron_axe') and getattr(state, 'iron_axe', 0) >= data['Goal'].get('iron_axe', 0)):
+		if (getattr(state, 'wooden_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'have_enough' and curr_task[2] == 'iron_axe') and getattr(state, 'iron_axe', {ID:0})[ID] >= data['Goal'].get('iron_axe', 0)):
+			return True
+		if (getattr(state, 'wooden_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'have_enough' and curr_task[2] == 'stone_axe') and getattr(state, 'stone_axe', {ID:0})[ID] >= data['Goal'].get('stone_axe', 0)):
 			return True
 
 		# print('1', pyhop.print_state(state))

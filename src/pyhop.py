@@ -186,7 +186,7 @@ def add_check(func):
 
 def print_operators(olist=operators):
     """Print out the names of the operators"""
-    print('OPERATORS:', ', '.join(olist))
+    print('OPERATORS:', ', '.join(olist.keys()))
 
 def print_methods(mlist=methods):
     """Print out a table of what the methods are for each task"""
