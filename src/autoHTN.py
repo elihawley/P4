@@ -52,6 +52,7 @@ def declare_methods (data):
 
 		# Sort AND methods by cost
 		and_methods_with_costs.sort(key=lambda and_method_with_costs: and_method_with_costs[1])
+
 		# For a given item, create an OR method with sorted AND methods as children
 		pyhop.declare_methods(f'produce_{item_name}', *[and_method_with_cost[0] for and_method_with_cost in and_methods_with_costs])
 
@@ -98,8 +99,11 @@ def add_heuristic (data, ID):
 		if (all([getattr(state, goal_item, {ID: 0})[ID] >= req_num for goal_item, req_num in data['Goal'].items()])):
 			if len(tasks) > 1:
 				return True
+			else:
+				# For trivial case: start with goal items
+				return False
 		# No time left, so finish.
-		if (state.time == 0):
+		if (state.time[ID] == 0):
 			return True
 
 		# If a tool has already been made, don't make more of it.
@@ -109,7 +113,9 @@ def add_heuristic (data, ID):
 			return True
 
 		# Don't produce more of an item if you already have enough for the current task.
-		if (curr_task[0] == 'produce' and curr_task[2] in data['Items'] and getattr(state, curr_task[2], {ID:0})[ID] >= sum(method[3] for method in tasks if method[0] == 'have_enough' and method[2] == curr_task[2])):
+		# Special case: Coal and ore depend on how many ingots we need
+		if (curr_task[0] == 'produce' and curr_task[2] in data['Items'] and getattr(state, curr_task[2], {ID:0})[ID] >= sum(method[3] for method in tasks if method[0] == 'have_enough' and method[2] == curr_task[2]) \
+			or (curr_task[0] == 'produce' and curr_task[2] in ['coal', 'ore'] and getattr(state, curr_task[2], {ID:0})[ID] >= sum(method[3] for method in tasks if method[0] == 'have_enough' and method[2] == 'ingot'))):
 			return True
 
 		# If only wood items/tools are needed, don't bother considering non_wood items/tools.
@@ -128,17 +134,20 @@ def add_heuristic (data, ID):
 			return True
 		if (getattr(state, 'stone_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'produce' and curr_task[2] == 'wooden_axe') and getattr(state, 'wooden_axe', {ID:0})[ID] >= data['Goal'].get('wooden_axe', 0)):
 			return True
-		if (getattr(state, 'wooden_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'produce' and curr_task[2] == 'iron_axe') and getattr(state, 'iron_axe', {ID:0})[ID] >= data['Goal'].get('iron_axe', 0)):
-			return True
-		if (getattr(state, 'wooden_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'produce' and curr_task[2] == 'stone_axe') and getattr(state, 'stone_axe', {ID:0})[ID] >= data['Goal'].get('stone_axe', 0)):
-			return True
 
-		# print('1', pyhop.print_state(state))
-		# print('2', curr_task)
-		# print('3', tasks)
-		# print('4', plan)
-		# print('5', depth)
-		# print('6', calling_stack)
+		# Skip making an unneeded pickaxe
+		# Don't bother making or using a pickaxe if we have a better one
+		if getattr(state, 'iron_pickaxe', {ID:0})[ID] >= 1:
+			if (curr_task[0] == 'produce' and curr_task[2] in {'stone_pickaxe', 'wooden_pickaxe'}):
+				return True
+			if (curr_task[0].startswith('op_stone_pickaxe_for') or curr_task[0].startswith('op_wooden_pickaxe_for')):
+				return True
+		if getattr(state, 'stone_pickaxe', {ID:0})[ID] >= 1:
+			if (curr_task[0] == 'produce' and curr_task[2] in {'wooden_pickaxe'}):
+				return True
+			if (curr_task[0].startswith('op_wooden_pickaxe_for')):
+				return True
+
 		return False # if True, prune this branch
 
 	pyhop.add_check(heuristic)
@@ -184,7 +193,7 @@ if __name__ == '__main__':
 
 	# Hint: verbose output can take a long time even if the solution is correct; 
 	# try verbose=1 if it is taking too long
-	pyhop.pyhop(state, goals, verbose=3)
+	pyhop.pyhop(state, goals, verbose=1)
 	# pyhop.pyhop(state, [('have_enough', 'agent', 'cart', 1),('have_enough', 'agent', 'rail', 20)], verbose=3)
     # Given {}, achieve {'plank': 1} [time <= 300]
     # Given {}, achieve {'wooden_pickaxe': 1} [time <=300]
@@ -196,3 +205,4 @@ if __name__ == '__main__':
     # Given {}, achieve {'iron_pickaxe': 1} [time <= 100]
     # Given {}, achieve {'cart': 1, 'rail': 10} [time <= 175]
     # Given {}, achieve {'cart': 1, 'rail': 20} [time <= 250]
+
