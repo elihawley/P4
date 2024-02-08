@@ -94,22 +94,26 @@ def add_heuristic (data, ID):
 	# e.g. def heuristic2(...); pyhop.add_check(heuristic2)
 	def heuristic (state, curr_task, tasks, plan, depth, calling_stack):
 		# your code here
-		"""hard_item = {'cart', 'coal', 'cobble', 'ingot', 'ore', 'rail', 'furnace'}
+		hard_item = {'cart', 'coal', 'cobble', 'ingot', 'ore', 'rail', 'furnace'}
 		if (all([goal_item in hard_item for goal_item in data['Goal'].keys()])):
 			for i in tasks:
 				if i == ('have_enough', 'agent', 'wooden_axe', 1):
 					tasks.remove(i)
+					#index = tasks.index([i])
+					#tasks[index] = ('op_punch_for_wood', 'agent')
 				if i == ('op_wooden_axe_for_wood', 'agent'):
 					index = tasks.index([i])
 					tasks[index] = ('op_punch_for_wood', 'agent')
 			for y in plan:
 				if y == ('op_craft_wooden_axe_on_bench', 'agent'):
+					#index = plan.index([y])
+					#plan[index] = ('op_punch_for_wood', 'agent')
 					plan.remove(y)
 				if y == ('op_wooden_axe_for_wood', 'agent'):
 					index = plan.index([y])
 					plan[index] = ('op_punch_for_wood', 'agent')
 			#Tried replacing items in tasks and plan
-			newops = []
+			"""newops = []
 			for recipe_name, recipe in data['Recipes'].items():
 				if recipe_name not in {'iron_axe for wood', 'stone_axe for wood', 'wooden_axe for wood', 'craft wooden_axe at bench', 'craft stone_axe at bench', 'craft iron_axe at bench'}:
 					rule = {recipe_name: recipe}
