@@ -94,7 +94,27 @@ def add_heuristic (data, ID):
 	# e.g. def heuristic2(...); pyhop.add_check(heuristic2)
 	def heuristic (state, curr_task, tasks, plan, depth, calling_stack):
 		# your code here
+		hard_item = {'cart', 'coal', 'cobble', 'ingot', 'ore', 'rail', 'furnace'}
+		if (all([goal_item in hard_item for goal_item in data['Goal'].keys()])):
+			newops = []
+			for recipe_name, recipe in data['Recipes'].items():
+				if recipe_name not in {'iron_axe for wood', 'stone_axe for wood', 'wooden_axe for wood', 'craft wooden_axe at bench', 'craft stone_axe at bench', 'craft iron_axe at bench'}:
+					rule = {recipe_name: recipe}
+					newop = make_operator(rule)
+					newops.append(newop)
+			
+			pyhop.declare_operators(*newops)
 
+			wood_punch = []
+			recipes_that_directly_produce_item = {recipe_name: recipe for recipe_name, recipe in data['Recipes'].items() if 'wood' in recipe['Produces']}
+			for recipe_name, recipe in recipes_that_directly_produce_item.items():
+				if recipe_name == 'punch for wood':
+					direct_and_method_name = recipe_name.replace(" ", "_")
+					rule = {recipe_name: recipe}
+					direct_and_method = make_method(direct_and_method_name, rule)
+					cost = recipe['Time']
+					wood_punch.append((direct_and_method, cost))
+			pyhop.declare_methods('produce_wood', *[and_method_with_cost[0] for and_method_with_cost in wood_punch])
 		# Already reached goal, so finish.
 		if (all([getattr(state, goal_item, {ID: 0})[ID] >= req_num for goal_item, req_num in data['Goal'].items()])):
 			if len(tasks) > 1:
@@ -134,20 +154,6 @@ def add_heuristic (data, ID):
 			return True
 		if (getattr(state, 'stone_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'produce' and curr_task[2] == 'wooden_axe') and getattr(state, 'wooden_axe', {ID:0})[ID] >= data['Goal'].get('wooden_axe', 0)):
 			return True
-		
-
-		hard_item = {'cart', 'coal', 'cobble', 'ingot', 'ore', 'rail', 'furnace'}
-		if (all([goal_item in hard_item for goal_item in data['Goal'].keys()])):
-			wood_punch = []
-			recipes_that_directly_produce_item = {recipe_name: recipe for recipe_name, recipe in data['Recipes'].items() if 'wood' in recipe['Produces']}
-			for recipe_name, recipe in recipes_that_directly_produce_item.items():
-				direct_and_method_name = recipe_name.replace(" ", "_")
-				rule = {recipe_name: recipe}
-				direct_and_method = make_method(direct_and_method_name, rule)
-				cost = recipe['Time']
-				wood_punch.append((direct_and_method, cost))
-			print('1', wood_punch)
-			pyhop.declare_methods('produce_wood', *[and_method_with_cost[0] for and_method_with_cost in wood_punch])
 
 		# Skip making an unneeded pickaxe
 		# Don't bother making or using a pickaxe if we have a better one
