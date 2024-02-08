@@ -94,8 +94,15 @@ def add_heuristic (data, ID):
 	# e.g. def heuristic2(...); pyhop.add_check(heuristic2)
 	def heuristic (state, curr_task, tasks, plan, depth, calling_stack):
 		# your code here
-		hard_item = {'cart', 'coal', 'cobble', 'ingot', 'ore', 'rail', 'furnace'}
+		
+		"""hard_item = {'cart', 'coal', 'cobble', 'ingot', 'ore', 'rail', 'furnace'}
 		if (all([goal_item in hard_item for goal_item in data['Goal'].keys()])):
+			for i in plan:
+				if i == ('op_craft_wooden_axe_at_bench', 'agent'):
+					plan.remove(i)
+				if i == ('op_wooden_axe_for_wood', 'agent'):
+					index = plan.index([i])
+					plan[index] = ('op_punch_for_wood', 'agent')
 			newops = []
 			for recipe_name, recipe in data['Recipes'].items():
 				if recipe_name not in {'iron_axe for wood', 'stone_axe for wood', 'wooden_axe for wood', 'craft wooden_axe at bench', 'craft stone_axe at bench', 'craft iron_axe at bench'}:
@@ -115,7 +122,7 @@ def add_heuristic (data, ID):
 				cost = recipe['Time']
 				if cost == 4:
 					wood_punch.append((direct_and_method, cost))
-			pyhop.declare_methods('produce_wood', *[and_method_with_cost[0] for and_method_with_cost in wood_punch])
+			pyhop.declare_methods('produce_wood', *[and_method_with_cost[0] for and_method_with_cost in wood_punch])"""
 		# Already reached goal, so finish.
 		if (all([getattr(state, goal_item, {ID: 0})[ID] >= req_num for goal_item, req_num in data['Goal'].items()])):
 			if len(tasks) > 1:
