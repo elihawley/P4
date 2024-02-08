@@ -23,6 +23,11 @@ def make_method (name, rule):
 		reqs = []
 		for item_or_tool_name, req_num in {**recipe.get('Requires', {}), **recipe.get('Consumes', {})}.items():
 			reqs.append(('have_enough', ID, item_or_tool_name, req_num))
+		# Make sure 'have_enough' sticks before planks so that we don't use the planks we need to make sticks...
+		plank_index = next((i for i, v in enumerate(reqs) if v[2] == 'plank'), -1)
+		stick_index = next((i for i, v in enumerate(reqs) if v[2] == 'stick'), -1)
+		if stick_index != -1 and plank_index != -1 and plank_index < stick_index:
+			reqs = [*reqs[:plank_index], reqs[stick_index], *reqs[plank_index+1:stick_index], reqs[plank_index], *reqs[stick_index+1:]]
 		return [*reqs, op_node]
 	and_method.__name__ = name
 	return and_method
@@ -109,23 +114,16 @@ def add_heuristic (data, ID):
 		# If a tool has already been made, don't make more of it.
 		if (curr_task[0] == 'produce' and curr_task[2] in data['Tools'] and getattr(state, curr_task[2], {ID: 0})[ID] >= 1):
 			return True
-		if (curr_task[0] == 'produce' and curr_task[2] in data['Tools'] and curr_task in calling_stack):
+		if (curr_task[0] == 'produce' and curr_task[2] in data['Tools'] and any(task[0] == curr_task[0] and task[2] == curr_task[2] for task in calling_stack)):
 			return True
-
+		
 		# Don't produce more of an item if you already have enough for the current task.
 		# Special case: Coal and ore depend on how many ingots we need
 		if (curr_task[0] == 'produce' and curr_task[2] in data['Items'] and getattr(state, curr_task[2], {ID:0})[ID] >= sum(method[3] for method in tasks if method[0] == 'have_enough' and method[2] == curr_task[2]) \
 			or (curr_task[0] == 'produce' and curr_task[2] in ['coal', 'ore'] and getattr(state, curr_task[2], {ID:0})[ID] >= sum(method[3] for method in tasks if method[0] == 'have_enough' and method[2] == 'ingot'))):
 			return True
 
-		# If only wood items/tools are needed, don't bother considering non_wood items/tools.
-		wood_only_items = {"bench", "wooden_axe", "wooden_pickaxe", "stick", "wood", "plank"}
-		non_wood_only_items = {'cart', 'coal', "cobble", "ingot", "ore", "rail", "furnace", "iron_axe", "iron_pickaxe", "stone_axe", "stone_pickaxe"}
-		if (all([goal_item in wood_only_items for goal_item in data['Goal'].keys()])):
-			if (curr_task[0] == 'have_enough' and curr_task[2] in non_wood_only_items):
-				return True
-		
-		# Skip making an unneeded axe
+		# Skip making an unneeded axe if we have one with the same speed
 		if (getattr(state, 'iron_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'produce' and curr_task[2] == 'stone_axe') and getattr(state, 'stone_axe', {ID:0})[ID] >= data['Goal'].get('stone_axe', 0)):
 			return True
 		if (getattr(state, 'iron_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'produce' and curr_task[2] == 'wooden_axe') and getattr(state, 'wooden_axe', {ID:0})[ID] >= data['Goal'].get('wooden_axe', 0)):
@@ -135,7 +133,11 @@ def add_heuristic (data, ID):
 		if (getattr(state, 'stone_axe', {ID:0})[ID] >= 1 and (curr_task[0] == 'produce' and curr_task[2] == 'wooden_axe') and getattr(state, 'wooden_axe', {ID:0})[ID] >= data['Goal'].get('wooden_axe', 0)):
 			return True
 
-		# Skip making an unneeded pickaxe
+		# Building axes from scratch usually not worth it unless we have a lot of time or need them for goal
+		if (all(axe not in data['Goal'] for axe in ['wooden_axe', 'stone_axe', 'iron_axe']) and all(getattr(state, axe, {ID:0})[ID] == 0 for axe in ['wooden_axe', 'stone_axe', 'iron_axe']) \
+			and state.time[ID] < 180 and (curr_task[0] == 'have_enough' and curr_task[2].endswith('_axe'))):
+			return True
+
 		# Don't bother making or using a pickaxe if we have a better one
 		if getattr(state, 'iron_pickaxe', {ID:0})[ID] >= 1:
 			if (curr_task[0] == 'produce' and curr_task[2] in {'stone_pickaxe', 'wooden_pickaxe'}):
@@ -147,6 +149,7 @@ def add_heuristic (data, ID):
 				return True
 			if (curr_task[0].startswith('op_wooden_pickaxe_for')):
 				return True
+
 
 		return False # if True, prune this branch
 
@@ -181,7 +184,7 @@ if __name__ == '__main__':
 	with open(rules_filename) as f:
 		data = json.load(f)
 
-	state = set_up_state(data, 'agent', time=175) # allot time here
+	state = set_up_state(data, 'agent', time=262) # allot time here
 	goals = set_up_goals(data, 'agent')
 
 	declare_operators(data)
@@ -193,7 +196,8 @@ if __name__ == '__main__':
 
 	# Hint: verbose output can take a long time even if the solution is correct; 
 	# try verbose=1 if it is taking too long
-	pyhop.pyhop(state, goals, verbose=1)
+	pyhop.pyhop(state, goals, verbose=1
+	)
 	# pyhop.pyhop(state, [('have_enough', 'agent', 'cart', 1),('have_enough', 'agent', 'rail', 20)], verbose=3)
     # Given {}, achieve {'plank': 1} [time <= 300]
     # Given {}, achieve {'wooden_pickaxe': 1} [time <=300]
@@ -205,4 +209,3 @@ if __name__ == '__main__':
     # Given {}, achieve {'iron_pickaxe': 1} [time <= 100]
     # Given {}, achieve {'cart': 1, 'rail': 10} [time <= 175]
     # Given {}, achieve {'cart': 1, 'rail': 20} [time <= 250]
-
