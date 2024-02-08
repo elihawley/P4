@@ -104,15 +104,16 @@ def add_heuristic (data, ID):
 					newops.append(newop)
 			
 			pyhop.declare_operators(*newops)
+			pyhop.print_operators()
 
 			wood_punch = []
 			recipes_that_directly_produce_item = {recipe_name: recipe for recipe_name, recipe in data['Recipes'].items() if 'wood' in recipe['Produces']}
 			for recipe_name, recipe in recipes_that_directly_produce_item.items():
-				if recipe_name == 'punch for wood':
-					direct_and_method_name = recipe_name.replace(" ", "_")
-					rule = {recipe_name: recipe}
-					direct_and_method = make_method(direct_and_method_name, rule)
-					cost = recipe['Time']
+				direct_and_method_name = recipe_name.replace(" ", "_")
+				rule = {recipe_name: recipe}
+				direct_and_method = make_method(direct_and_method_name, rule)
+				cost = recipe['Time']
+				if cost == 4:
 					wood_punch.append((direct_and_method, cost))
 			pyhop.declare_methods('produce_wood', *[and_method_with_cost[0] for and_method_with_cost in wood_punch])
 		# Already reached goal, so finish.
@@ -209,7 +210,7 @@ if __name__ == '__main__':
 	add_heuristic(data, 'agent')
 
 	# pyhop.print_operators()
-	pyhop.print_methods()
+	#pyhop.print_methods()
 
 	# Hint: verbose output can take a long time even if the solution is correct; 
 	# try verbose=1 if it is taking too long
